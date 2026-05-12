@@ -26,19 +26,20 @@
         }
 
         h2 { color: #004e89; text-align: center; margin-bottom: 20px; font-size: 1.5rem; }
+        h3 { color: #ff6b35; margin-top: 0; font-size: 1.2rem; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         
         label { 
             display: block; 
-            margin: 12px 0 6px; 
+            margin: 10px 0 4px; 
             font-weight: 600; 
             color: #333;
-            font-size: 0.95rem;
+            font-size: 0.90rem;
         }
 
         /* Ajustes para Inputs no Celular */
         input, textarea { 
             width: 100%; 
-            padding: 12px; 
+            padding: 10px; 
             border: 2px solid #ddd; 
             border-radius: 10px; 
             font-size: 16px; /* Evita zoom automático no iPhone */
@@ -52,14 +53,24 @@
             background: #fff;
         }
 
-        textarea { height: 100px; line-height: 1.4; }
+        /* Altura reduzida pois agora são 6 caixas */
+        textarea { height: 75px; line-height: 1.4; }
 
         .captains-area { 
             background: #f8faff; 
             padding: 12px; 
             border-radius: 10px; 
             border: 2px dashed #004e89; 
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .category-area {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
         .captain-input { margin-bottom: 10px; }
@@ -68,15 +79,17 @@
         button { 
             width: 100%; 
             padding: 15px; 
-            margin-top: 15px; 
+            margin-top: 10px; 
             border: none; 
             border-radius: 12px; 
             cursor: pointer; 
             font-weight: bold; 
             font-size: 16px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            active: transform: scale(0.98);
+            transition: transform 0.1s;
         }
+
+        button:active { transform: scale(0.98); }
 
         .btn-sortear { background: #ff6b35; color: white; }
         .btn-voltar { background: #6c757d; color: white; margin-top: 10px; }
@@ -88,7 +101,7 @@
             margin-bottom: 15px; 
             border-radius: 12px;
             border: 1px solid #eee;
-            border-top: 5px solid #ff6b35;
+            border-top: 5px solid #004e89;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
@@ -105,6 +118,13 @@
             margin-left: 5px;
             vertical-align: middle;
         }
+        
+        .level-tag {
+            color: #888;
+            font-size: 0.8rem;
+            margin-left: 5px;
+            font-style: italic;
+        }
 
         #results { display: none; }
     </style>
@@ -114,7 +134,7 @@
 <div class="box" id="setup">
     <h2>🏐 Sorteio de Vôlei</h2>
     
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
         <div style="flex: 1;">
             <label>Nº de Times</label>
             <input type="number" id="numTeams" value="2" min="1" oninput="gerarCamposCapitaes()">
@@ -128,11 +148,29 @@
     <label>⭐ Nome dos Capitães:</label>
     <div id="captainsContainer" class="captains-area"></div>
 
-    <label>Homens (um por linha):</label>
-    <textarea id="males" placeholder="Toque para digitar os nomes..."></textarea>
+    <div class="category-area">
+        <h3>Homens</h3>
+        <label>Nível 1 (Avançado):</label>
+        <textarea id="m1" placeholder="Um nome por linha..."></textarea>
+        
+        <label>Nível 2 (Intermediário):</label>
+        <textarea id="m2" placeholder="Um nome por linha..."></textarea>
+        
+        <label>Nível 3 (Iniciante):</label>
+        <textarea id="m3" placeholder="Um nome por linha..."></textarea>
+    </div>
 
-    <label>Mulheres (um por linha):</label>
-    <textarea id="females" placeholder="Toque para digitar os nomes..."></textarea>
+    <div class="category-area">
+        <h3>Mulheres</h3>
+        <label>Nível 1 (Avançado):</label>
+        <textarea id="f1" placeholder="Um nome por linha..."></textarea>
+        
+        <label>Nível 2 (Intermediário):</label>
+        <textarea id="f2" placeholder="Um nome por linha..."></textarea>
+        
+        <label>Nível 3 (Iniciante):</label>
+        <textarea id="f3" placeholder="Um nome por linha..."></textarea>
+    </div>
 
     <button class="btn-sortear" onclick="sortear()">SORTEAR AGORA</button>
 </div>
@@ -167,31 +205,66 @@
         return array;
     }
 
+    // Função auxiliar para formatar nome + tag de nível no resultado
+    function formatPlayer(name, levelInfo) {
+        return `${name} <span class="level-tag">(${levelInfo})</span>`;
+    }
+
     function sortear() {
         const nTeams = parseInt(document.getElementById('numTeams').value);
         const pTeam = parseInt(document.getElementById('perTeam').value);
         const capInputs = document.querySelectorAll('.cap-name');
         let captains = Array.from(capInputs).map(input => input.value.trim()).filter(n => n !== "");
-        let m = document.getElementById('males').value.split('\n').filter(n => n.trim() !== "");
-        let f = document.getElementById('females').value.split('\n').filter(n => n.trim() !== "");
+        
+        // Coletando listas e formatando com a tag de nível
+        let m1 = document.getElementById('m1').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "H1"));
+        let m2 = document.getElementById('m2').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "H2"));
+        let m3 = document.getElementById('m3').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "H3"));
+        
+        let f1 = document.getElementById('f1').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "M1"));
+        let f2 = document.getElementById('f2').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "M2"));
+        let f3 = document.getElementById('f3').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "M3"));
 
         if (captains.length < nTeams) {
             alert(`Preencha os ${nTeams} capitães!`);
             return;
         }
 
-        const faltam = (nTeams * pTeam) - nTeams;
-        if ((m.length + f.length) < faltam) {
-            alert(`Faltam ${faltam - (m.length + f.length)} jogadores.`);
+        const totalPlayers = m1.length + m2.length + m3.length + f1.length + f2.length + f3.length;
+        const faltam = (nTeams * pTeam) - nTeams; // Vagas restantes tirando os capitães
+        
+        if (totalPlayers < faltam) {
+            alert(`Faltam ${faltam - totalPlayers} jogadores no total para preencher as equipes.`);
             return;
         }
 
-        m = shuffle(m); f = shuffle(f);
+        // Embaralha cada lista separadamente
+        m1 = shuffle(m1); m2 = shuffle(m2); m3 = shuffle(m3);
+        f1 = shuffle(f1); f2 = shuffle(f2); f3 = shuffle(f3);
+
         let teams = captains.map(cap => [cap + " <span class='captain-tag'>CAP</span>"]);
 
+        // Ordem de prioridade para intercalar o sorteio (garante equilíbrio de gênero e nível)
+        // Mulher N1 -> Homem N1 -> Mulher N2 -> Homem N2 -> Mulher N3 -> Homem N3
+        let pools = [f1, m1, f2, m2, f3, m3];
+
+        // i representa a rodada de escolha (para preencher o resto do time)
         for (let i = 1; i < pTeam; i++) {
+            // Qual a lista preferencial desta rodada?
+            let preferredPoolIndex = (i - 1) % pools.length;
+            
             for (let t = 0; t < nTeams; t++) {
-                let pick = (i % 2 !== 0) ? (f.length ? f.pop() : m.pop()) : (m.length ? m.pop() : f.pop());
+                let pick = null;
+                
+                // Tenta puxar da lista ideal. Se estiver vazia, tenta a próxima lista disponível.
+                for (let offset = 0; offset < pools.length; offset++) {
+                    let idx = (preferredPoolIndex + offset) % pools.length;
+                    if (pools[idx].length > 0) {
+                        pick = pools[idx].pop();
+                        break;
+                    }
+                }
+                
                 if (pick) teams[t].push(pick);
             }
         }
