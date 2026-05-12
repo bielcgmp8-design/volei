@@ -30,16 +30,16 @@
         
         label { 
             display: block; 
-            margin: 10px 0 4px; 
+            margin: 12px 0 6px; 
             font-weight: 600; 
             color: #333;
-            font-size: 0.90rem;
+            font-size: 0.95rem;
         }
 
         /* Ajustes para Inputs no Celular */
         input, textarea { 
             width: 100%; 
-            padding: 10px; 
+            padding: 12px; 
             border: 2px solid #ddd; 
             border-radius: 10px; 
             font-size: 16px; /* Evita zoom automático no iPhone */
@@ -53,8 +53,7 @@
             background: #fff;
         }
 
-        /* Altura reduzida pois agora são 6 caixas */
-        textarea { height: 75px; line-height: 1.4; }
+        textarea { height: 100px; line-height: 1.4; }
 
         .captains-area { 
             background: #f8faff; 
@@ -149,27 +148,15 @@
     <div id="captainsContainer" class="captains-area"></div>
 
     <div class="category-area">
-        <h3>Homens</h3>
+        <h3>Jogadores</h3>
         <label>Nível 1 (Avançado):</label>
-        <textarea id="m1" placeholder="Um nome por linha..."></textarea>
+        <textarea id="n1" placeholder="Um nome por linha..."></textarea>
         
         <label>Nível 2 (Intermediário):</label>
-        <textarea id="m2" placeholder="Um nome por linha..."></textarea>
+        <textarea id="n2" placeholder="Um nome por linha..."></textarea>
         
         <label>Nível 3 (Iniciante):</label>
-        <textarea id="m3" placeholder="Um nome por linha..."></textarea>
-    </div>
-
-    <div class="category-area">
-        <h3>Mulheres</h3>
-        <label>Nível 1 (Avançado):</label>
-        <textarea id="f1" placeholder="Um nome por linha..."></textarea>
-        
-        <label>Nível 2 (Intermediário):</label>
-        <textarea id="f2" placeholder="Um nome por linha..."></textarea>
-        
-        <label>Nível 3 (Iniciante):</label>
-        <textarea id="f3" placeholder="Um nome por linha..."></textarea>
+        <textarea id="n3" placeholder="Um nome por linha..."></textarea>
     </div>
 
     <button class="btn-sortear" onclick="sortear()">SORTEAR AGORA</button>
@@ -217,20 +204,16 @@
         let captains = Array.from(capInputs).map(input => input.value.trim()).filter(n => n !== "");
         
         // Coletando listas e formatando com a tag de nível
-        let m1 = document.getElementById('m1').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "H1"));
-        let m2 = document.getElementById('m2').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "H2"));
-        let m3 = document.getElementById('m3').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "H3"));
-        
-        let f1 = document.getElementById('f1').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "M1"));
-        let f2 = document.getElementById('f2').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "M2"));
-        let f3 = document.getElementById('f3').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "M3"));
+        let n1 = document.getElementById('n1').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "N1"));
+        let n2 = document.getElementById('n2').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "N2"));
+        let n3 = document.getElementById('n3').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "N3"));
 
         if (captains.length < nTeams) {
             alert(`Preencha os ${nTeams} capitães!`);
             return;
         }
 
-        const totalPlayers = m1.length + m2.length + m3.length + f1.length + f2.length + f3.length;
+        const totalPlayers = n1.length + n2.length + n3.length;
         const faltam = (nTeams * pTeam) - nTeams; // Vagas restantes tirando os capitães
         
         if (totalPlayers < faltam) {
@@ -239,14 +222,12 @@
         }
 
         // Embaralha cada lista separadamente
-        m1 = shuffle(m1); m2 = shuffle(m2); m3 = shuffle(m3);
-        f1 = shuffle(f1); f2 = shuffle(f2); f3 = shuffle(f3);
+        n1 = shuffle(n1); n2 = shuffle(n2); n3 = shuffle(n3);
 
         let teams = captains.map(cap => [cap + " <span class='captain-tag'>CAP</span>"]);
 
-        // Ordem de prioridade para intercalar o sorteio (garante equilíbrio de gênero e nível)
-        // Mulher N1 -> Homem N1 -> Mulher N2 -> Homem N2 -> Mulher N3 -> Homem N3
-        let pools = [f1, m1, f2, m2, f3, m3];
+        // Ordem de prioridade para intercalar o sorteio (garante equilíbrio de nível)
+        let pools = [n1, n2, n3];
 
         // i representa a rodada de escolha (para preencher o resto do time)
         for (let i = 1; i < pTeam; i++) {
