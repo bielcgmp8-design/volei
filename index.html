@@ -37,7 +37,7 @@
         }
 
         /* Ajustes para Inputs no Celular */
-        input, textarea { 
+        input, textarea, select { 
             width: 100%; 
             padding: 12px; 
             border: 2px solid #ddd; 
@@ -47,7 +47,7 @@
             transition: border-color 0.3s;
         }
 
-        input:focus, textarea:focus {
+        input:focus, textarea:focus, select:focus {
             border-color: #ff6b35;
             outline: none;
             background: #fff;
@@ -125,6 +125,14 @@
             font-style: italic;
         }
 
+        .team-score {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: normal;
+            float: right;
+            margin-top: 4px;
+        }
+
         #results { display: none; }
     </style>
 </head>
@@ -176,8 +184,13 @@
         container.innerHTML = '';
         for (let i = 1; i <= n; i++) {
             container.innerHTML += `
-                <div class="captain-input">
-                    <input type="text" class="cap-name" placeholder="Nome do Capitão ${i}">
+                <div class="captain-input" style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+                    <input type="text" class="cap-name" placeholder="Nome do Capitão ${i}" style="flex: 1.5; margin: 0;">
+                    <select class="cap-level" style="flex: 1; margin: 0; padding: 10px; font-size: 14px;">
+                        <option value="3">Nível 1 (N1)</option>
+                        <option value="2" selected>Nível 2 (N2)</option>
+                        <option value="1">Nível 3 (N3)</option>
+                    </select>
                 </div>`;
         }
     }
@@ -192,68 +205,147 @@
         return array;
     }
 
-    // Função auxiliar para formatar nome + tag de nível no resultado
-    function formatPlayer(name, levelInfo) {
-        return `${name} <span class="level-tag">(${levelInfo})</span>`;
+    // Calcula a variância dos pontos entre os times (quanto menor, mais equilibrado)
+    function getScoreVariance(assignments, teams, selectedPlayers) {
+        let tempScores = teams.map(t => t.captainWeight);
+        for (let i = 0; i < assignments.length; i++) {
+            let teamIdx = assignments[i];
+            tempScores[teamIdx] += selectedPlayers[i].peso;
+        }
+        let mean = tempScores.reduce((a, b) => a + b, 0) / tempScores.length;
+        let variance = tempScores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0);
+        return variance;
     }
 
     function sortear() {
         const nTeams = parseInt(document.getElementById('numTeams').value);
         const pTeam = parseInt(document.getElementById('perTeam').value);
         const capInputs = document.querySelectorAll('.cap-name');
-        let captains = Array.from(capInputs).map(input => input.value.trim()).filter(n => n !== "");
+        const capLevels = document.querySelectorAll('.cap-level');
         
-        // Coletando listas e formatando com a tag de nível
-        let n1 = document.getElementById('n1').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "N1"));
-        let n2 = document.getElementById('n2').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "N2"));
-        let n3 = document.getElementById('n3').value.split('\n').filter(n => n.trim() !== "").map(n => formatPlayer(n, "N3"));
+        let captains = [];
+        for (let i = 0; i < capInputs.length; i++) {
+            let name = capInputs[i].value.trim();
+            let peso = parseInt(capLevels[i].value);
+            if (name !== "") {
+                captains.push({ name: name, peso: peso });
+            }
+        }
+
+        // Captura listas originais
+        let rawN1 = document.getElementById('n1').value.split('\n').filter(n => n.trim() !== "");
+        let rawN2 = document.getElementById('n2').value.split('\n').filter(n => n.trim() !== "");
+        let rawN3 = document.getElementById('n3').value.split('\n').filter(n => n.trim() !== "");
 
         if (captains.length < nTeams) {
             alert(`Preencha os ${nTeams} capitães!`);
             return;
         }
 
-        const totalPlayers = n1.length + n2.length + n3.length;
-        const faltam = (nTeams * pTeam) - nTeams; // Vagas restantes tirando os capitães
+        const totalPlayers = rawN1.length + rawN2.length + rawN3.length;
+        const faltam = (nTeams * pTeam) - nTeams; 
         
         if (totalPlayers < faltam) {
             alert(`Faltam ${faltam - totalPlayers} jogadores no total para preencher as equipes.`);
             return;
         }
 
-        // Embaralha cada lista separadamente
-        n1 = shuffle(n1); n2 = shuffle(n2); n3 = shuffle(n3);
+        // Criar pools de jogadores com pesos (N1 = 3 pts, N2 = 2 pts, N3 = 1 pt)
+        let poolN1 = rawN1.map(n => ({ name: n, peso: 3 }));
+        let poolN2 = rawN2.map(n => ({ name: n, peso: 2 }));
+        let poolN3 = rawN3.map(n => ({ name: n, peso: 1 }));
 
-        let teams = captains.map(cap => [cap + " <span class='captain-tag'>CAP</span>"]);
+        // Embaralha cada pool separadamente para manter o fator aleatório
+        poolN1 = shuffle(poolN1); 
+        poolN2 = shuffle(poolN2); 
+        poolN3 = shuffle(poolN3);
 
-        // Ordem de prioridade para intercalar o sorteio (garante equilíbrio de nível)
-        let pools = [n1, n2, n3];
-
-        // i representa a rodada de escolha (para preencher o resto do time)
-        for (let i = 1; i < pTeam; i++) {
-            // Qual a lista preferencial desta rodada?
-            let preferredPoolIndex = (i - 1) % pools.length;
+        // Selecionar exatamente a quantidade de jogadores necessários preservando a proporção de níveis
+        let selectedPlayers = [];
+        let p1 = [...poolN1];
+        let p2 = [...poolN2];
+        let p3 = [...poolN3];
+        
+        let poolsList = [p1, p2, p3];
+        let poolIndex = 0;
+        while (selectedPlayers.length < faltam) {
+            let activePools = poolsList.filter(p => p.length > 0);
+            if (activePools.length === 0) break;
             
-            for (let t = 0; t < nTeams; t++) {
-                let pick = null;
-                
-                // Tenta puxar da lista ideal. Se estiver vazia, tenta a próxima lista disponível.
-                for (let offset = 0; offset < pools.length; offset++) {
-                    let idx = (preferredPoolIndex + offset) % pools.length;
-                    if (pools[idx].length > 0) {
-                        pick = pools[idx].pop();
-                        break;
-                    }
+            for (let i = 0; i < poolsList.length; i++) {
+                let idx = (poolIndex + i) % poolsList.length;
+                if (poolsList[idx].length > 0 && selectedPlayers.length < faltam) {
+                    selectedPlayers.push(poolsList[idx].pop());
                 }
-                
-                if (pick) teams[t].push(pick);
+            }
+            poolIndex = (poolIndex + 1) % poolsList.length;
+        }
+
+        // Inicializa os times com capitães e seus respectivos pesos
+        let teams = captains.map(cap => ({
+            captainName: cap.name,
+            captainWeight: cap.peso,
+            players: [{ name: cap.name, peso: cap.peso, isCaptain: true }],
+            score: cap.peso
+        }));
+
+        // Cria uma lista de atribuições válidas (ex: se temos 2 times e precisamos de 5 vagas por time, gera 5 'zeros' e 5 'uns')
+        let assignments = [];
+        for (let t = 0; t < nTeams; t++) {
+            for (let j = 0; j < pTeam - 1; j++) {
+                assignments.push(t);
+            }
+        }
+        assignments = shuffle(assignments);
+
+        let bestAssignments = [...assignments];
+        let bestVariance = getScoreVariance(bestAssignments, teams, selectedPlayers);
+
+        // Hill Climbing: Executa 3000 tentativas de trocas de jogadores buscando o menor desequilíbrio matemático
+        for (let iter = 0; iter < 3000; iter++) {
+            let idx1 = Math.floor(Math.random() * assignments.length);
+            let idx2 = Math.floor(Math.random() * assignments.length);
+            if (idx1 === idx2) continue;
+
+            // Faz a troca temporária
+            [assignments[idx1], assignments[idx2]] = [assignments[idx2], assignments[idx1]];
+
+            let currentVariance = getScoreVariance(assignments, teams, selectedPlayers);
+            if (currentVariance < bestVariance) {
+                bestVariance = currentVariance;
+                bestAssignments = [...assignments];
+            } else {
+                // Desfaz a troca se ela piorou ou manteve igual o equilíbrio
+                [assignments[idx1], assignments[idx2]] = [assignments[idx2], assignments[idx1]];
             }
         }
 
-        document.getElementById('teamList').innerHTML = teams.map((t, i) => 
-            `<div class="team"><strong>Time ${i+1}</strong>` + 
-            t.map(p => `<div class="player-item">• ${p}</div>`).join('') + 
-            `</div>`).join('');
+        // Aplica o melhor arranjo encontrado aos times reais
+        for (let i = 0; i < bestAssignments.length; i++) {
+            let teamIdx = bestAssignments[i];
+            let player = selectedPlayers[i];
+            teams[teamIdx].players.push(player);
+            teams[teamIdx].score += player.peso;
+        }
+
+        // Renderiza o resultado das equipes
+        document.getElementById('teamList').innerHTML = teams.map((t, i) => {
+            let playersHtml = t.players.map(p => {
+                let levelLabel = p.peso === 3 ? "N1" : (p.peso === 2 ? "N2" : "N3");
+                if (p.isCaptain) {
+                    return `<div class="player-item">• ${p.name} <span class="captain-tag">CAP</span> <span class="level-tag">(${levelLabel})</span></div>`;
+                } else {
+                    return `<div class="player-item">• ${p.name} <span class="level-tag">(${levelLabel})</span></div>`;
+                }
+            }).join('');
+
+            return `
+                <div class="team">
+                    <strong>Time ${i+1} <span class="team-score">Força Total: ${t.score} pts</span></strong>
+                    ${playersHtml}
+                </div>
+            `;
+        }).join('');
         
         document.getElementById('setup').style.display = 'none';
         document.getElementById('results').style.display = 'block';
