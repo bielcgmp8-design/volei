@@ -28,12 +28,19 @@
         h2 { color: #004e89; text-align: center; margin-bottom: 20px; font-size: 1.5rem; }
         h3 { color: #ff6b35; margin-top: 0; font-size: 1.2rem; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         
+        .level-title {
+            color: #004e89;
+            font-size: 1rem;
+            margin: 15px 0 5px 0;
+            font-weight: bold;
+        }
+
         label { 
             display: block; 
-            margin: 12px 0 6px; 
+            margin: 0 0 6px 0; 
             font-weight: 600; 
             color: #333;
-            font-size: 0.95rem;
+            font-size: 0.90rem;
         }
 
         /* Ajustes para Inputs no Celular */
@@ -53,7 +60,7 @@
             background: #fff;
         }
 
-        textarea { height: 100px; line-height: 1.4; }
+        textarea { height: 90px; line-height: 1.4; resize: none; }
 
         .captains-area { 
             background: #f8faff; 
@@ -70,6 +77,14 @@
             border: 1px solid #e0e0e0;
             margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        /* Layout em Grid para Homens/Mulheres lado a lado */
+        .gender-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
         .captain-input { margin-bottom: 10px; }
@@ -104,7 +119,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .team strong { color: #004e89; font-size: 1.2rem; display: block; margin-bottom: 8px; }
+        .team strong { color: #004e89; font-size: 1.1rem; display: block; margin-bottom: 8px; }
         .player-item { padding: 5px 0; border-bottom: 1px solid #f0f0f0; }
         .player-item:last-child { border-bottom: none; }
         
@@ -127,10 +142,13 @@
 
         .team-score {
             font-size: 0.85rem;
-            color: #666;
-            font-weight: normal;
-            float: right;
-            margin-top: 4px;
+            color: #444;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 6px;
         }
 
         #results { display: none; }
@@ -152,19 +170,50 @@
         </div>
     </div>
 
-    <label>⭐ Nome dos Capitães:</label>
+    <label style="margin-top: 10px;">⭐ Nome dos Capitães:</label>
     <div id="captainsContainer" class="captains-area"></div>
 
     <div class="category-area">
         <h3>Jogadores</h3>
-        <label>Nível 1 (Avançado):</label>
-        <textarea id="n1" placeholder="Um nome por linha..."></textarea>
         
-        <label>Nível 2 (Intermediário):</label>
-        <textarea id="n2" placeholder="Um nome por linha..."></textarea>
+        <!-- Nível 1 -->
+        <div class="level-title">Nível 1 (Avançado)</div>
+        <div class="gender-split">
+            <div>
+                <label>👨 Homens:</label>
+                <textarea id="n1m" placeholder="Nomes..."></textarea>
+            </div>
+            <div>
+                <label>👩 Mulheres:</label>
+                <textarea id="n1f" placeholder="Nomes..."></textarea>
+            </div>
+        </div>
         
-        <label>Nível 3 (Iniciante):</label>
-        <textarea id="n3" placeholder="Um nome por linha..."></textarea>
+        <!-- Nível 2 -->
+        <div class="level-title">Nível 2 (Intermediário)</div>
+        <div class="gender-split">
+            <div>
+                <label>👨 Homens:</label>
+                <textarea id="n2m" placeholder="Nomes..."></textarea>
+            </div>
+            <div>
+                <label>👩 Mulheres:</label>
+                <textarea id="n2f" placeholder="Nomes..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Nível 3 -->
+        <div class="level-title">Nível 3 (Iniciante)</div>
+        <div class="gender-split">
+            <div>
+                <label>👨 Homens:</label>
+                <textarea id="n3m" placeholder="Nomes..."></textarea>
+            </div>
+            <div>
+                <label>👩 Mulheres:</label>
+                <textarea id="n3f" placeholder="Nomes..."></textarea>
+            </div>
+        </div>
     </div>
 
     <button class="btn-sortear" onclick="sortear()">SORTEAR AGORA</button>
@@ -184,12 +233,16 @@
         container.innerHTML = '';
         for (let i = 1; i <= n; i++) {
             container.innerHTML += `
-                <div class="captain-input" style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
-                    <input type="text" class="cap-name" placeholder="Nome do Capitão ${i}" style="flex: 1.5; margin: 0;">
-                    <select class="cap-level" style="flex: 1; margin: 0; padding: 10px; font-size: 14px;">
-                        <option value="3">Nível 1 (N1)</option>
-                        <option value="2" selected>Nível 2 (N2)</option>
-                        <option value="1">Nível 3 (N3)</option>
+                <div class="captain-input" style="display: flex; gap: 5px; margin-bottom: 10px; align-items: center;">
+                    <input type="text" class="cap-name" placeholder="Capitão ${i}" style="flex: 2; margin: 0; padding: 10px;">
+                    <select class="cap-gender" style="flex: 0.8; margin: 0; padding: 10px 5px; font-size: 14px;">
+                        <option value="M">👨</option>
+                        <option value="F">👩</option>
+                    </select>
+                    <select class="cap-level" style="flex: 1.2; margin: 0; padding: 10px 5px; font-size: 14px;">
+                        <option value="3">N1</option>
+                        <option value="2" selected>N2</option>
+                        <option value="1">N3</option>
                     </select>
                 </div>`;
         }
@@ -205,37 +258,60 @@
         return array;
     }
 
-    // Calcula a variância dos pontos entre os times (quanto menor, mais equilibrado)
-    function getScoreVariance(assignments, teams, selectedPlayers) {
+    // Calcula o "Custo" (desequilíbrio). Quanto menor, mais perfeitos estão os times.
+    function getBalanceCost(assignments, teams, selectedPlayers) {
         let tempScores = teams.map(t => t.captainWeight);
+        let tempMenCount = teams.map(t => t.players.filter(p => p.gender === 'M').length);
+
         for (let i = 0; i < assignments.length; i++) {
             let teamIdx = assignments[i];
-            tempScores[teamIdx] += selectedPlayers[i].peso;
+            let p = selectedPlayers[i];
+            tempScores[teamIdx] += p.peso;
+            if (p.gender === 'M') tempMenCount[teamIdx] += 1;
         }
-        let mean = tempScores.reduce((a, b) => a + b, 0) / tempScores.length;
-        let variance = tempScores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0);
-        return variance;
+
+        // Variância da Força (pontos)
+        let meanScore = tempScores.reduce((a, b) => a + b, 0) / tempScores.length;
+        let scoreVariance = tempScores.reduce((sum, s) => sum + Math.pow(s - meanScore, 2), 0);
+
+        // Variância de Gênero (distribuição de homens/mulheres)
+        let meanMen = tempMenCount.reduce((a, b) => a + b, 0) / tempMenCount.length;
+        let genderVariance = tempMenCount.reduce((sum, m) => sum + Math.pow(m - meanMen, 2), 0);
+
+        // O custo combina as duas variâncias. Multiplicamos o gênero por 10 para dar um peso forte a ele (forçar times mistos)
+        return scoreVariance + (genderVariance * 10);
     }
 
     function sortear() {
         const nTeams = parseInt(document.getElementById('numTeams').value);
         const pTeam = parseInt(document.getElementById('perTeam').value);
+        
         const capInputs = document.querySelectorAll('.cap-name');
+        const capGenders = document.querySelectorAll('.cap-gender');
         const capLevels = document.querySelectorAll('.cap-level');
         
         let captains = [];
         for (let i = 0; i < capInputs.length; i++) {
             let name = capInputs[i].value.trim();
+            let gender = capGenders[i].value;
             let peso = parseInt(capLevels[i].value);
             if (name !== "") {
-                captains.push({ name: name, peso: peso });
+                captains.push({ name: name, peso: peso, gender: gender });
             }
         }
 
-        // Captura listas originais
-        let rawN1 = document.getElementById('n1').value.split('\n').filter(n => n.trim() !== "");
-        let rawN2 = document.getElementById('n2').value.split('\n').filter(n => n.trim() !== "");
-        let rawN3 = document.getElementById('n3').value.split('\n').filter(n => n.trim() !== "");
+        // Captura e rotula listas por nível e gênero
+        let n1m = document.getElementById('n1m').value.split('\n').filter(n => n.trim() !== "");
+        let n1f = document.getElementById('n1f').value.split('\n').filter(n => n.trim() !== "");
+        let rawN1 = [...n1m.map(n => ({ name: n, peso: 3, gender: 'M' })), ...n1f.map(n => ({ name: n, peso: 3, gender: 'F' }))];
+
+        let n2m = document.getElementById('n2m').value.split('\n').filter(n => n.trim() !== "");
+        let n2f = document.getElementById('n2f').value.split('\n').filter(n => n.trim() !== "");
+        let rawN2 = [...n2m.map(n => ({ name: n, peso: 2, gender: 'M' })), ...n2f.map(n => ({ name: n, peso: 2, gender: 'F' }))];
+
+        let n3m = document.getElementById('n3m').value.split('\n').filter(n => n.trim() !== "");
+        let n3f = document.getElementById('n3f').value.split('\n').filter(n => n.trim() !== "");
+        let rawN3 = [...n3m.map(n => ({ name: n, peso: 1, gender: 'M' })), ...n3f.map(n => ({ name: n, peso: 1, gender: 'F' }))];
 
         if (captains.length < nTeams) {
             alert(`Preencha os ${nTeams} capitães!`);
@@ -250,24 +326,14 @@
             return;
         }
 
-        // Criar pools de jogadores com pesos (N1 = 3 pts, N2 = 2 pts, N3 = 1 pt)
-        let poolN1 = rawN1.map(n => ({ name: n, peso: 3 }));
-        let poolN2 = rawN2.map(n => ({ name: n, peso: 2 }));
-        let poolN3 = rawN3.map(n => ({ name: n, peso: 1 }));
+        let poolN1 = shuffle([...rawN1]); 
+        let poolN2 = shuffle([...rawN2]); 
+        let poolN3 = shuffle([...rawN3]);
 
-        // Embaralha cada pool separadamente para manter o fator aleatório
-        poolN1 = shuffle(poolN1); 
-        poolN2 = shuffle(poolN2); 
-        poolN3 = shuffle(poolN3);
-
-        // Selecionar exatamente a quantidade de jogadores necessários preservando a proporção de níveis
         let selectedPlayers = [];
-        let p1 = [...poolN1];
-        let p2 = [...poolN2];
-        let p3 = [...poolN3];
-        
-        let poolsList = [p1, p2, p3];
+        let poolsList = [poolN1, poolN2, poolN3];
         let poolIndex = 0;
+        
         while (selectedPlayers.length < faltam) {
             let activePools = poolsList.filter(p => p.length > 0);
             if (activePools.length === 0) break;
@@ -281,15 +347,13 @@
             poolIndex = (poolIndex + 1) % poolsList.length;
         }
 
-        // Inicializa os times com capitães e seus respectivos pesos
         let teams = captains.map(cap => ({
             captainName: cap.name,
             captainWeight: cap.peso,
-            players: [{ name: cap.name, peso: cap.peso, isCaptain: true }],
+            players: [{ name: cap.name, peso: cap.peso, gender: cap.gender, isCaptain: true }],
             score: cap.peso
         }));
 
-        // Cria uma lista de atribuições válidas (ex: se temos 2 times e precisamos de 5 vagas por time, gera 5 'zeros' e 5 'uns')
         let assignments = [];
         for (let t = 0; t < nTeams; t++) {
             for (let j = 0; j < pTeam - 1; j++) {
@@ -299,28 +363,28 @@
         assignments = shuffle(assignments);
 
         let bestAssignments = [...assignments];
-        let bestVariance = getScoreVariance(bestAssignments, teams, selectedPlayers);
+        let bestCost = getBalanceCost(bestAssignments, teams, selectedPlayers);
 
-        // Hill Climbing: Executa 3000 tentativas de trocas de jogadores buscando o menor desequilíbrio matemático
-        for (let iter = 0; iter < 3000; iter++) {
+        // Hill Climbing: 4000 tentativas de trocas buscando equilibrar Gênero e Nível ao mesmo tempo
+        for (let iter = 0; iter < 4000; iter++) {
             let idx1 = Math.floor(Math.random() * assignments.length);
             let idx2 = Math.floor(Math.random() * assignments.length);
             if (idx1 === idx2) continue;
 
-            // Faz a troca temporária
+            // Troca temporária
             [assignments[idx1], assignments[idx2]] = [assignments[idx2], assignments[idx1]];
 
-            let currentVariance = getScoreVariance(assignments, teams, selectedPlayers);
-            if (currentVariance < bestVariance) {
-                bestVariance = currentVariance;
+            let currentCost = getBalanceCost(assignments, teams, selectedPlayers);
+            if (currentCost < bestCost) {
+                bestCost = currentCost;
                 bestAssignments = [...assignments];
             } else {
-                // Desfaz a troca se ela piorou ou manteve igual o equilíbrio
+                // Desfaz a troca se não for melhor
                 [assignments[idx1], assignments[idx2]] = [assignments[idx2], assignments[idx1]];
             }
         }
 
-        // Aplica o melhor arranjo encontrado aos times reais
+        // Aplica o melhor arranjo
         for (let i = 0; i < bestAssignments.length; i++) {
             let teamIdx = bestAssignments[i];
             let player = selectedPlayers[i];
@@ -328,20 +392,26 @@
             teams[teamIdx].score += player.peso;
         }
 
-        // Renderiza o resultado das equipes
         document.getElementById('teamList').innerHTML = teams.map((t, i) => {
+            let countM = t.players.filter(p => p.gender === 'M').length;
+            let countF = t.players.filter(p => p.gender === 'F').length;
+
             let playersHtml = t.players.map(p => {
                 let levelLabel = p.peso === 3 ? "N1" : (p.peso === 2 ? "N2" : "N3");
+                let icon = p.gender === 'M' ? "👨" : "👩";
                 if (p.isCaptain) {
-                    return `<div class="player-item">• ${p.name} <span class="captain-tag">CAP</span> <span class="level-tag">(${levelLabel})</span></div>`;
+                    return `<div class="player-item">${icon} ${p.name} <span class="captain-tag">CAP</span> <span class="level-tag">(${levelLabel})</span></div>`;
                 } else {
-                    return `<div class="player-item">• ${p.name} <span class="level-tag">(${levelLabel})</span></div>`;
+                    return `<div class="player-item">${icon} ${p.name} <span class="level-tag">(${levelLabel})</span></div>`;
                 }
             }).join('');
 
             return `
                 <div class="team">
-                    <strong>Time ${i+1} <span class="team-score">Força Total: ${t.score} pts</span></strong>
+                    <strong>
+                        Time ${i+1} 
+                        <span class="team-score">Força: ${t.score} pts | 👨 ${countM} 👩 ${countF}</span>
+                    </strong>
                     ${playersHtml}
                 </div>
             `;
